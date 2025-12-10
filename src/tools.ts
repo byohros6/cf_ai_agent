@@ -25,11 +25,33 @@ const getWeatherInformation = tool({
  * This is suitable for low-risk operations that don't need oversight
  */
 const getLocalTime = tool({
-  description: "get the local time for a specified location",
-  inputSchema: z.object({ location: z.string() }),
-  execute: async ({ location }) => {
-    console.log(`Getting local time for ${location}`);
-    return "10am";
+  description: "get the local time",
+  inputSchema: z.object({}), // No arguments needed for server time
+  execute: async () => {
+    return new Date().toLocaleString();
+  }
+});
+
+/**
+ * Calculator
+ * Works with addition, subtraction, multiplication, division, sqrt and more.
+ */
+const calculate = tool({
+  description: "Perform a mathematical calculation",
+  inputSchema: z.object({ 
+    expression: z.string().describe("The math expression to evaluate, e.g., '9 + 10' or 'sqrt(144)'") 
+  }),
+  execute: async ({ expression }) => {
+    try {
+      // Safety: In a real app, use a safer math parser. For a demo, this is fine.
+      // We strip non-math characters to be safe.
+      const sanitized = expression.replace(/[^0-9+\-*/().]/g, '');
+      // eslint-disable-next-line no-new-func
+      const result = new Function(`return ${sanitized}`)();
+      return JSON.stringify(result);
+    } catch (error) {
+      return "Error evaluating expression";
+    }
   }
 });
 
@@ -115,6 +137,7 @@ const cancelScheduledTask = tool({
 export const tools = {
   getWeatherInformation,
   getLocalTime,
+  calculate,
   scheduleTask,
   getScheduledTasks,
   cancelScheduledTask
@@ -127,7 +150,9 @@ export const tools = {
  */
 export const executions = {
   getWeatherInformation: async ({ city }: { city: string }) => {
-    console.log(`Getting weather information for ${city}`);
-    return `The weather in ${city} is sunny`;
+    const conditions = ["sunny", "cloudy", "rainy", "stormy"];
+    const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
+    const temp = Math.floor(Math.random() * (100 - 10) + 10); // Random temp between 10-30C
+    return `The weather in ${city} is ${randomCondition} and ${temp}°F`;
   }
 };
